@@ -59,7 +59,7 @@ class _MyAppState extends State<MyApp> {
         title: 'MytilEX',
         theme: ThemeData(
           // Define the default brightness and colors.
-            colorScheme: const ColorScheme.light().copyWith(primary:  const Color.fromRGBO(0, 96, 160, 1.0)),
+            colorScheme: const ColorScheme.light().copyWith(primary:  const Color.fromRGBO(6, 66, 115, 1.0)),
             canvasColor: const Color.fromRGBO(229, 233, 236, 1.0),
 
             // Define the default font family.
@@ -99,7 +99,7 @@ class _MyAppState extends State<MyApp> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const Image(image: AssetImage('resources/logo_mytilex.png')),
+                          const Image(image: AssetImage('resources/logo_mytilex.png'), height: 300, fit:BoxFit.fill),
                           Text(message, textAlign: TextAlign.justify),
                           Container(
                               padding: const EdgeInsets.only(top:20, left:20, right:20),

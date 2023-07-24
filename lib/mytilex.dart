@@ -54,7 +54,7 @@ class _MytilEXState extends State<MytilEX>{
     return Scaffold(
       appBar: AppBar(
         title: const Text('MytilEX', style: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic, fontFamily: 'Georgia'),),
-        backgroundColor: const Color.fromRGBO(0, 96, 160, 1.0),
+        backgroundColor: const Color.fromRGBO(6, 66, 115, 1.0),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.info),
@@ -155,7 +155,7 @@ class _MytilEXState extends State<MytilEX>{
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.grey,
-        backgroundColor: const Color.fromRGBO(0, 100, 160, 1.0),
+        backgroundColor: const Color.fromRGBO(6, 66, 115, 1.0),
         onTap: _onItemTapped,
       ),
     );

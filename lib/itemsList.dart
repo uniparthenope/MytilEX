@@ -28,7 +28,7 @@ Future<List> getItems(String date, locations) async {
 
       if (data["result"] == "ok"){
         var id = data["place"]["id"].toString();
-        var scs = 'resources/arrow/' + data["forecast"]["scs"].toString() + '.jpg';
+        var scs = 'resources/arrow/' + data["forecast"]["scs"].toString() + '.png';
         var scm = data["forecast"]["scm"].toString();
         var name = data["place"]["long_name"]["it"].toString();
         var status = 'resources/status/none.png'.toString();
