@@ -32,7 +32,7 @@ class AboutPage extends StatelessWidget {
     return Scaffold(
         appBar: AppBar(
           title: const Text("Informazioni", style: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic, fontFamily: 'Georgia'),),
-          backgroundColor: const Color.fromRGBO(0, 96, 160, 1.0),
+          backgroundColor: const Color.fromRGBO(6, 66, 115, 1.0),
         ),
         body:
         Container(
@@ -69,7 +69,7 @@ class AboutPage extends StatelessWidget {
                   )
 
               ),
-              Image.asset('resources/logo_mytilex.png'),
+              const Image(image: AssetImage('resources/logo_mytilex.png'), height: 300, fit:BoxFit.fill),
               const Text('Team: ',
                   textAlign: TextAlign.center,
                   style: TextStyle(
