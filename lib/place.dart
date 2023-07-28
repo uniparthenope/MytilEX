@@ -75,6 +75,7 @@ Future<Item> getItem(id, date) async {
         element = Item(urlWcm3: urlWcm3, urlWw3: urlWw3, urlAiquam: urlAiquam, urlRms: urlRms,
             curValRms5: curValRms3, curDirRms5: curDirRms3, T_Sup: TSup, S_Sup: SSup, dataPoints: dataPoints,
             curDirWrf5: curDirWrf5, temperature: temp, rain: rain, weathIcon: weath, weathLabel: wLabel);
+        print(element);
       }
     }
   }
