@@ -20,8 +20,8 @@ var isLogged = false;
 const String apiBase= 'https://api.meteo.uniparthenope.it';
 
 Future<String> getMessage() async {
-  final response = await http
-      .get(Uri.parse(apiBase + "/legal/disclaimer?lang=it-IT"));
+  var url = apiBase + "/legal/disclaimer?lang=it-IT";
+  var response = await http.get(Uri.parse(url));
 
   if (response.statusCode == 200) {
     //log(response.body);
@@ -76,7 +76,8 @@ class _MyAppState extends State<MyApp> {
             builder: (BuildContext context, AsyncSnapshot<String> snapshot){
 
               final message = snapshot.data.toString();
-              return Scaffold(
+              if (snapshot.hasError) {
+                return Scaffold(
                   appBar: AppBar(
                     title: const Text("MytilEX"),
                     actions: <Widget>[
@@ -93,55 +94,90 @@ class _MyAppState extends State<MyApp> {
                       )
                     ],
                   ),
-                  body: Container(
-                      padding: const EdgeInsets.only(left: 10,top: 5, right: 10),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const Image(image: AssetImage('resources/logo_mytilex.png'), height: 300, fit:BoxFit.fill),
-                          Text(message, textAlign: TextAlign.justify),
-                          Container(
-                              padding: const EdgeInsets.only(top:20, left:20, right:20),
-                              alignment: Alignment.topCenter,
-                              child: Column(
-                                children: [
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => const MytilEX()),
-                                      );
-                                    },
-                                    child: const Text('Accetta e continua'),
-                                  )
-                                ],
-                              )
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Align(
-                              alignment: Alignment.bottomCenter,
-                              child: ElevatedButton(
-                                  onPressed: ()async{
-                                    String email = Uri.encodeComponent("mytilex@uniparthenope.it");
-                                    String subject = Uri.encodeComponent("Segnalazione bug in app MytilEX");
-                                    String body = Uri.encodeComponent("");
-                                    Uri mail = Uri.parse("mailto:$email?subject=$subject&body=$body");
-                                    if (await launchUrl(mail)) {
-                                      //email app opened
-                                    }else{
-                                      //email app is not opened
-                                    }
-                                  },
-                                  child: const Text("Segnala malfunzionamenti")
-                              ),
+                  body: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        CircularProgressIndicator(),
+                        SizedBox(height: 20),
+                        Text(
+                          'Sfortunatamente siamo soggetti ad alcuni malfunzionamenti a causa di motivi tecnici.',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 10),
+                        Text('Siamo prodemente al lavoro per risolvere la problematica e tornare operativi il prima possibile.'),
+                      ],
+                    ),
+                  ),
+                );
+              } else {
+                return Scaffold(
+                    appBar: AppBar(
+                      title: const Text("MytilEX"),
+                      actions: <Widget>[
+                        IconButton(
+                          icon: const Icon(Icons.info),
+                          tooltip: 'Informazioni',
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => AboutPage()),
+                              //MaterialPageRoute(builder: (context) => ItemPage(title: "Test")),
+                            );
+                          },
+                        )
+                      ],
+                    ),
+                    body: Container(
+                        padding: const EdgeInsets.only(left: 10,top: 5, right: 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Image(image: AssetImage('resources/logo_mytilex.png'), height: 300, fit:BoxFit.fill),
+                            Text(message, textAlign: TextAlign.justify),
+                            Container(
+                                padding: const EdgeInsets.only(top:20, left:20, right:20),
+                                alignment: Alignment.topCenter,
+                                child: Column(
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => const MytilEX()),
+                                        );
+                                      },
+                                      child: const Text('Accetta e continua'),
+                                    )
+                                  ],
+                                )
                             ),
-                          )
-                        ],
-                      )
-                  )
-              );
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Align(
+                                alignment: Alignment.bottomCenter,
+                                child: ElevatedButton(
+                                    onPressed: ()async{
+                                      String email = Uri.encodeComponent("mytilex@uniparthenope.it");
+                                      String subject = Uri.encodeComponent("Segnalazione bug in app MytilEX");
+                                      String body = Uri.encodeComponent("");
+                                      Uri mail = Uri.parse("mailto:$email?subject=$subject&body=$body");
+                                      if (await launchUrl(mail)) {
+                                        //email app opened
+                                      }else{
+                                        //email app is not opened
+                                      }
+                                    },
+                                    child: const Text("Segnala malfunzionamenti")
+                                ),
+                              ),
+                            )
+                          ],
+                        )
+                    )
+                );
+              }
             }
         )
     );

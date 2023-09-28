@@ -54,7 +54,7 @@ Future<Item> getItem(id, date) async {
     var dataRms3 = jsonDecode(response.body);
     if (dataRms3["result"] == "ok") {
       String curDirRms3 = dataRms3["forecast"]["scm"].toString() + " m/sec";
-      String curValRms3 = "resources/arrow/" + dataRms3["forecast"]["scs"] + ".png";
+      String curValRms3 = "resources/arrow/" + dataRms3["forecast"]["scs"] + ".jpg";
 
       String TSup = dataRms3["forecast"]["sst"].toString() + ' °C';
       String SSup = dataRms3["forecast"]["sss"].toString() + ' [1/1000]';
