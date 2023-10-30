@@ -58,6 +58,8 @@ dev_dependencies:
 flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
+    - resources/logo-partenhope.png
+    - resources/logo-regione-campania.png
     - resources/logo_mytilex.png
     - resources/arrow/
     - resources/status/

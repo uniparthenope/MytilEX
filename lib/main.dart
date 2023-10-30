@@ -134,7 +134,15 @@ class _MyAppState extends State<MyApp> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            const Image(image: AssetImage('resources/logo_mytilex.png'), height: 300, fit:BoxFit.fill),
+                            Row(
+                                //mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  const Image(image: AssetImage('resources/logo-regione-campania.png'), height: 120, fit:BoxFit.fill),
+                                  const Image(image: AssetImage('resources/logo_mytilex.png'), height: 120, fit:BoxFit.fill),
+                                  const Image(image: AssetImage('resources/logo-partenhope.png'), height: 120, fit:BoxFit.fill),
+                                ]
+                            ),
                             Text(message, textAlign: TextAlign.justify),
                             Container(
                                 padding: const EdgeInsets.only(top:20, left:20, right:20),

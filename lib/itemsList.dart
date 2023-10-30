@@ -18,7 +18,7 @@ class Rows {
 }
 
 
-Future<List> getItems(String date, locations) async {
+Future<List> getItems(String date, locations, int index) async {
   List<Rows> list = <Rows>[];
 
   for (int i=0; i < locations.length; i++){
@@ -28,18 +28,24 @@ Future<List> getItems(String date, locations) async {
 
       if (data["result"] == "ok"){
         var id = data["place"]["id"].toString();
-        var scs = 'resources/arrow/' + data["forecast"]["scs"].toString() + '.jpg';
+        var scs = 'resources/arrow/' + data["forecast"]["scs"].toString() + '.png';
         var scm = data["forecast"]["scm"].toString();
         var name = data["place"]["long_name"]["it"].toString();
         var status = 'resources/status/none.png'.toString();
 
-        // Check if user has permission to see status
-        final response2 = await http.get(Uri.parse(apiBase + "/products/wcm3/forecast/" + id + "?date=" + date));
+        var urlStatus = apiBase + "/products/wcm3/forecast/" + id + "?date=" + date;
+        if (index == 1) {
+          urlStatus = apiBase + "/products/aiq3/forecast/" + id + "?date=" + date;
+        }
+        final response2 = await http.get(Uri.parse(urlStatus));
         if (response2.statusCode == 200) {
           var data2 = jsonDecode(response2.body);
 
           if (data2["result"] == "ok"){
-            status = 'resources/status/' + data2["forecast"]["sts"].toString() + '.png';
+            if (index == 1)
+              status = 'resources/status/' + (data2["forecast"]["mci"] + 1).toString() + '.png';
+            else
+              status = 'resources/status/' + data2["forecast"]["sts"].toString() + '.png';
           }
         }
 
@@ -59,8 +65,9 @@ Future<List> getItems(String date, locations) async {
 class ListLayout extends StatefulWidget {
   final String date;
   final List<String> locations;
+  final int index;
 
-  ListLayout({required this.date, required this.locations});
+  ListLayout({required this.date, required this.locations, required this.index});
 
   @override
   _ListLayoutState createState() => _ListLayoutState();
@@ -75,10 +82,11 @@ class _ListLayoutState extends State<ListLayout> {
   Widget build(BuildContext context) {
     var date = formatData(widget.date);
     var locations = widget.locations;
+    var idxPage = widget.index;
     return Scaffold(
       body: Center(
         child: FutureBuilder(
-            future: getItems(date, locations),
+            future: getItems(date, locations, idxPage),
             builder: (context, AsyncSnapshot<List> snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -89,18 +97,29 @@ class _ListLayoutState extends State<ListLayout> {
                   return ListView.builder(
                     itemBuilder: (BuildContext context, int index) {
                       var item = items![index];
+                      var title = item.name;
+                      var subtitle = "";
+
+                      if (idxPage == 1) {
+                        var split = title.split("-");
+                        title = split[0].trim();
+                        subtitle = split[1].trim();
+                      }
                       return Card(
                         child: ListTile(
                           onTap: (){
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => PlacePage(title: item.name, id: item.id, date: date)),
+                              MaterialPageRoute(builder: (context) => PlacePage(title: item.name, id: item.id, date: date, idxPage: idxPage)),
                             );
                           },
-                          title: Text(item.name),
-                          subtitle: Text(item.curVal + " m/s"),
-                          leading: Image(image: AssetImage(item.curDir),height: 50,),
-                          trailing: Image(image: AssetImage(item.status),height: 25,),
+                          title: Text(title),
+                          subtitle: Text(subtitle),
+                          leading: Column(children: [
+                            Image(image: AssetImage(item.curDir), height: 30,),
+                            Text(item.curVal + " m/s", style: TextStyle(fontSize: 12))
+                          ]),
+                          trailing: Image(image: AssetImage(item.status), height: 25,),
                         ),
                       );
                     },

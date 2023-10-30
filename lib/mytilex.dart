@@ -16,9 +16,8 @@ class MytilEX extends StatefulWidget{
 class _MytilEXState extends State<MytilEX>{
   int _selectedIndex = 1;
   String text = "Update";
-  //List<String> vetLocations = ["VET0130", "VET0020", "VET0021", "VET0072", "VET0071", "VET0100", "VET0062", "VET0150", "VET0055", "VET0054", "VET0056", "VET0051", "VET0050", "VET0053", "VET0052", "VET0121", "VET0123", "VET0122", "VET0125", "VET0124", "VET0000", "VET0031", "VET0030", "VET0140", "VET0061", "VET0063", "VET0064", "VET0110", "VET0010", "VET0160", "VET0057", "VET0042", "VET0041"];
-  List<String> vetLocations = ["VET0130", "VET0020", "VET0021", "VET0072", "VET0071", "VET0100", "VET0062", "VET0150", "VET0055", "VET0054", "VET0051", "VET0053", "VET0052", "VET0121", "VET0000", "VET0061", "VET0064", "VET0010", "VET0160", "VET0042"];
-  List<String> vebLocations = ["VEB1500030", "VEB1500029", "VEB1500015", "VEB1500012", "VEB1500013", "VEB1500018", "VEB1500038", "VEB1500014","VEB1500022","VEB1500032", "VEB1500041", "VEB1500026", "VEB1500033", "VEB1500016"];
+  List<String> vetLocations = ["VET0000", "VET0130", "VET0010", "VET0020", "VET0150", "VET0051", "VET0055", "VET0052", "VET0054"];
+  List<String> vebLocations = ["VEB1500030", "VEB1500029", "VEB1500015", "VEB1500012", "VEB1500013", "VEB1500018", "VEB1500038", "VEB1500014","VEB1500022","VEB1500032", "VEB1500041", "VEB1500026", "VEB1500033", "VEB1500016", "VEB1500011", "VEB1500021", "VEB1500034", "VEB1500036", "VEB1500039"];
   var date = DateTime.now().toUtc();
 
   void refresh() {
@@ -26,8 +25,8 @@ class _MytilEXState extends State<MytilEX>{
   }
 
   List<Widget> _widgetOptions = <Widget>[
-    ListLayout(date: DateTime.now().toUtc().toString(), locations: const []),
-    ListLayout(date: DateTime.now().toUtc().toString(), locations: const []),
+    ListLayout(date: DateTime.now().toUtc().toString(), locations: const [], index: 0),
+    ListLayout(date: DateTime.now().toUtc().toString(), locations: const [], index: 1),
   ];
 
   @override
@@ -35,8 +34,8 @@ class _MytilEXState extends State<MytilEX>{
     date = DateTime(date.year, date.month, date.day, date.hour);
 
     _widgetOptions = <Widget>[
-      ListLayout(date: date.toString(), locations: vetLocations),
-      ListLayout(date: date.toString(), locations: vebLocations),
+      ListLayout(date: date.toString(), locations: vetLocations, index: 0),
+      ListLayout(date: date.toString(), locations: vebLocations, index: 1),
     ];
     super.initState();
   }
@@ -44,14 +43,21 @@ class _MytilEXState extends State<MytilEX>{
   void _handleRefresh(val) {
     setState(() {
       _widgetOptions = <Widget>[
-        ListLayout(date: val, locations: vetLocations),
-        ListLayout(date: val, locations: vebLocations),
+        ListLayout(date: val, locations: vetLocations, index: _selectedIndex),
+        ListLayout(date: val, locations: vebLocations, index: _selectedIndex),
       ];
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    var legendTitle = 'Concentrazione [N° di particelle]';
+    var label = 'Conc. Inquinanti';
+    if (_selectedIndex == 1) {
+      legendTitle = 'Indice contaminazione molluschi';
+      label = 'Liv. contaminazione';
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('MytilEX', style: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic, fontFamily: 'Georgia'),),
@@ -82,8 +88,8 @@ class _MytilEXState extends State<MytilEX>{
                   firstDate: DateTime(2000),
                   lastDate: DateTime(2100),
                   icon: const Icon(Icons.event),
-                  dateLabelText: 'Date',
-                  timeLabelText: "Hour",
+                  dateLabelText: 'Data',
+                  timeLabelText: 'Ora',
                   onChanged: (val) => {
                     _handleRefresh(val),
                   },
@@ -98,10 +104,18 @@ class _MytilEXState extends State<MytilEX>{
             Padding(
               padding: const EdgeInsets.all(5),
                 child: Row(
-                  children: const [
-                    Expanded(flex: 1, child: Text("Dir. Vento", style: TextStyle(fontWeight: FontWeight.bold))),
-                    Expanded(flex: 5, child: Center(child: Text("Nome", style: TextStyle(fontWeight: FontWeight.bold)))),
-                    Expanded(flex: 2, child: Text("Conc. Inquinanti", style: TextStyle(fontWeight: FontWeight.bold))),
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text("Dir. Corrente", style: TextStyle(fontWeight: FontWeight.bold))
+                    )),
+                    Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(label, style: TextStyle(fontWeight: FontWeight.bold))
+                        )
+                    ),
                   ],
                 ),
             ),
@@ -113,7 +127,7 @@ class _MytilEXState extends State<MytilEX>{
               padding: const EdgeInsets.all(5),
               child: Column(
                 children: [
-                  const Center(child:Text("Legenda Inquinanti:", style: TextStyle(fontWeight: FontWeight.bold))),
+                  Center(child:Text(legendTitle, style: TextStyle(fontWeight: FontWeight.bold))),
                   Padding(padding: const EdgeInsets.all(3),
                   child: Column(children: [
                     Row(children: [
