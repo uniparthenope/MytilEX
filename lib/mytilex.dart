@@ -43,8 +43,8 @@ class _MytilEXState extends State<MytilEX>{
   void _handleRefresh(val) {
     setState(() {
       _widgetOptions = <Widget>[
-        ListLayout(date: val, locations: vetLocations, index: _selectedIndex),
-        ListLayout(date: val, locations: vebLocations, index: _selectedIndex),
+        ListLayout(date: val, locations: vetLocations, index: 0),
+        ListLayout(date: val, locations: vebLocations, index: 1),
       ];
     });
   }
