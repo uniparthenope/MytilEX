@@ -154,8 +154,15 @@ class PlacePageState extends State<PlacePage>{
 
     return Scaffold(
         appBar: AppBar(
-          title: Text(widget.title,),
+          toolbarHeight: 100,
           backgroundColor: const Color.fromRGBO(6, 66, 115, 1.0),
+          title: Flexible(
+            child: Text(
+              title,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+            ),
+          ),
         ),
         body: Center(
           child: FutureBuilder(
