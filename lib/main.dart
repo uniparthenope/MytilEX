@@ -68,7 +68,7 @@ class _MyAppState extends State<MyApp> {
             // Define the default `TextTheme`. Use this to specify the default
             // text styling for headlines, titles, bodies of text, and more.
             textTheme: const TextTheme(
-              headline6: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic),
+              headlineSmall: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic),
             )
         ),
         home: FutureBuilder(

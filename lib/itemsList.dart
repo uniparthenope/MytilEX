@@ -28,8 +28,8 @@ Future<List> getItems(String date, locations, int index) async {
 
       if (data["result"] == "ok"){
         var id = data["place"]["id"].toString();
-        var scs = 'resources/arrow/' + data["forecast"]["scs"].toString() + '.png';
-        var scm = data["forecast"]["scm"].toString();
+        var scs = 'resources/arrow/' + data["scs"].toString() + '.png';
+        var scm = data["scm"].toString();
         var name = data["place"]["long_name"]["it"].toString();
         var status = 'resources/status/none.png'.toString();
 
@@ -42,10 +42,14 @@ Future<List> getItems(String date, locations, int index) async {
           var data2 = jsonDecode(response2.body);
 
           if (data2["result"] == "ok"){
-            if (index == 1)
-              status = 'resources/status/' + (data2["forecast"]["mci"] + 1).toString() + '.png';
-            else
-              status = 'resources/status/' + data2["forecast"]["sts"].toString() + '.png';
+            if (index == 1) {
+              var mciValue = data2["mci"] != null ? (data2["mci"] + 1).toString() : "0";
+              status = 'resources/status/' + mciValue + '.png';
+            }
+            else {
+              var stsValue = data2["sts"] != null ? data2["sts"].toString() : "null";
+              status = 'resources/status/' + stsValue + '.png';
+            }
           }
         }
 
@@ -83,6 +87,7 @@ class _ListLayoutState extends State<ListLayout> {
     var date = formatData(widget.date);
     var locations = widget.locations;
     var idxPage = widget.index;
+
     return Scaffold(
       body: Center(
         child: FutureBuilder(
@@ -103,7 +108,7 @@ class _ListLayoutState extends State<ListLayout> {
                       if (idxPage == 1) {
                         var split = title.split("-");
                         title = split[0].trim();
-                        subtitle = split[1].trim();
+                        subtitle = split.sublist(1).join('-').trim();
                       }
                       return Card(
                         child: ListTile(
