@@ -128,7 +128,6 @@ class DataPoint {
 
 Future<List<DataPoint>> getTimeSeriesAIQ(id, date) async {
   String url = apiBase + "/products/aiq3/timeseries/" + id + "?date=" + date;
-  print("URL timeseries: $url");
   List<DataPoint> dataPoints = [];
 
   try {
@@ -145,7 +144,6 @@ Future<List<DataPoint>> getTimeSeriesAIQ(id, date) async {
           int minute = int.parse(dateString.substring(11, 13));
 
           DateTime parsedDate = DateTime.utc(year, month, day, hour, minute);
-          print(data);
 
           dataPoints.add(DataPoint(
             timestamp: parsedDate,
@@ -186,9 +184,7 @@ class PlacePageState extends State<PlacePage> {
   }
 
   Widget buildBarChart(List<DataPoint> dataPoints) {
-    if (dataPoints.isEmpty) {
-      return SizedBox.shrink();
-    }
+    if (dataPoints.isEmpty) return SizedBox.shrink();
 
     dataPoints.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
@@ -200,36 +196,51 @@ class PlacePageState extends State<PlacePage> {
           x: i,
           barRods: [
             BarChartRodData(
-              toY: dp.value.toDouble(),
-              color: getBarColor(dp.value),
+              toY: (dp.value + 1).toDouble(),
+              color: getBarColor(dp.value + 1),
               width: 16,
-            )
+            ),
           ],
         ),
       );
     }
 
+    double maxY = barGroups.map((g) => g.barRods.first.toY).reduce((a, b) => a > b ? a : b) + 1;
+
     return BarChart(
       BarChartData(
+        minY: 0,
+        maxY: maxY,
+        barTouchData: BarTouchData(enabled: false),
         barGroups: barGroups,
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
-            sideTitles: SideTitles(showTitles: true),
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (double value, TitleMeta meta) {
+                if (value % 1 != 0) return Container();
+                return Text(value.toInt().toString(), style: TextStyle(fontSize: 10));
+              },
+            ),
+          ),
+          topTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
           ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
               getTitlesWidget: (double value, TitleMeta meta) {
                 int index = value.toInt();
-                if (index < 0 || index >= dataPoints.length) {
-                  return Container();
-                }
+                if (index % 4 != 0 || index < 0 || index >= dataPoints.length) return Container();
                 DateTime date = dataPoints[index].timestamp;
-                return Padding(
-                  padding: const EdgeInsets.only(top: 4.0),
+                return Transform.rotate(
+                  angle: -0.5,
                   child: Text(
                     DateFormat('dd/MM').format(date),
-                    style: TextStyle(fontSize: 10),
+                    style: TextStyle(fontSize: 8),
                   ),
                 );
               },
@@ -242,18 +253,18 @@ class PlacePageState extends State<PlacePage> {
   }
 
   Color getBarColor(int value) {
-    if (value == 1) {
+    if (value == 2) {
       return Color.fromARGB(255, 56, 105, 243);
-    } else if (value == 2) {
-      return Color.fromARGB(255, 1, 204, 61);
     } else if (value == 3) {
-      return Color.fromARGB(255, 252, 255, 84);
+      return Color.fromARGB(255, 1, 204, 61);
     } else if (value == 4) {
-      return Color.fromARGB(255, 254, 47, 29);
+      return Color.fromARGB(255, 252, 255, 84);
     } else if (value == 5) {
+      return Color.fromARGB(255, 254, 47, 29);
+    } else if (value == 6) {
       return Color.fromARGB(255, 106, 0, 48);
     }
-    return Colors.white;
+    return Color.fromARGB(255, 213, 254, 255);
   }
 
   String formatData(String dateStr) {
