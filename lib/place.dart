@@ -547,6 +547,7 @@ class PlacePageState extends State<PlacePage> {
                               },
                             ),
                             Image.asset('resources/colorbar/it-IT/bar_pioggia.jpg'),
+                            Image.asset('resources/colorbar/it-IT/bar_nuvole.jpg'),
                             const Divider(height: 20, thickness: 0),
                           ],
                           Image.network(
