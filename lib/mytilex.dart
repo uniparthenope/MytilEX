@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:date_time_picker/date_time_picker.dart';
 import 'package:mytilex/about.dart';
 import 'package:mytilex/itemsList.dart';
+import 'package:mytilex/datetime_selector.dart';
 
 
 class MytilEX extends StatefulWidget{
@@ -81,25 +82,10 @@ class _MytilEXState extends State<MytilEX>{
           children: [
             Expanded(
                 flex: 1,
-                child: DateTimePicker(
-                  type: DateTimePickerType.dateTimeSeparate,
-                  dateMask: 'd MMM, yyyy',
-                  initialValue: date.toString(),
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2100),
-                  icon: const Icon(Icons.event),
-                  dateLabelText: 'Data',
-                  timeLabelText: 'Ora',
-                  onChanged: (val) => {
-                    _handleRefresh(val),
-                  },
-                  validator: (val) {
-                    return null;
-                  },
-                  onSaved: (val) => {
-                    _handleRefresh(val),
-                  },
-                )
+                child: DateTimeSelector(
+                  initialDate: date,
+                  onDateChanged: _handleRefresh,
+                ),
             ),
             Padding(
               padding: const EdgeInsets.all(5),

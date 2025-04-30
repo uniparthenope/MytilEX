@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:mytilex/datetime_selector.dart';
 
 const String apiBase = 'https://api.meteo.uniparthenope.it';
 
@@ -178,9 +179,28 @@ class PlacePage extends StatefulWidget {
 }
 
 class PlacePageState extends State<PlacePage> {
+  late DateTime selectedDate;
+  late Future<Item> _futureItem;
+
   @override
   void initState() {
     super.initState();
+    final d = widget.date.replaceAll('Z', '');
+
+    selectedDate = DateTime.utc(
+      int.parse(d.substring(0, 4)), // year
+      int.parse(d.substring(4, 6)), // month
+      int.parse(d.substring(6, 8)), // day
+      int.parse(d.substring(8, 10)), // hour
+      0,
+    );
+
+    _futureItem = _loadItem();
+  }
+
+  Future<Item> _loadItem() {
+    final formattedDate = DateFormat("yyyyMMdd'Z'HHmm").format(selectedDate);
+    return getItem(widget.id, formattedDate, widget.idxPage);
   }
 
   Widget buildBarChart(List<DataPoint> dataPoints) {
@@ -267,357 +287,362 @@ class PlacePageState extends State<PlacePage> {
     return Color.fromARGB(255, 213, 254, 255);
   }
 
-  String formatData(String dateStr) {
-    DateTime parsedDate = DateTime.parse(
-      "${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}T${dateStr.substring(9, 11)}:${dateStr.substring(11, 13)}:00Z",
-    );
-    String humanReadableDate = DateFormat('dd/MM/yyyy hh:mm').format(parsedDate);
-    return humanReadableDate;
-  }
-
   @override
   Widget build(BuildContext context) {
     var title = widget.title;
     var id = widget.id;
     var date = widget.date;
     var idxPage = widget.idxPage;
-    var humanReadableDate = formatData(date);
+    var humanReadableDate = DateFormat('dd/MM/yyyy HH:mm').format(selectedDate);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
         backgroundColor: const Color.fromRGBO(6, 66, 115, 1.0),
       ),
-      body: Center(
-        child: FutureBuilder(
-          future: getItem(id, date, idxPage),
-          builder: (BuildContext context, AsyncSnapshot<Item> snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting)
-              return const Center(child: CircularProgressIndicator());
-            else if (snapshot.hasError)
-              return Text("${snapshot.error}");
-            else {
-              var data = snapshot.data;
-              String? urlWcm3 = data?.urlWcm3;
-              String? urlAiquam = data?.urlAiquam;
-              String? urlWw3 = data?.urlWw3;
-              String? urlRms = data?.urlRms;
-              String? urlWrf = data?.urlWrf5;
+      body: Column(
+        children: [
+          DateTimeSelector(
+          initialDate: selectedDate,
+          onDateChanged: (val) {
+            setState(() {
+              selectedDate = DateTime.parse(val);
+              _futureItem = _loadItem();
+            });
+          },
+        ),
+          Expanded(
+          child: FutureBuilder(
+            future: _futureItem,
+            builder: (BuildContext context, AsyncSnapshot<Item> snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting)
+                return const Center(child: CircularProgressIndicator());
+              else if (snapshot.hasError)
+                return Text("${snapshot.error}");
+              else {
+                var data = snapshot.data;
+                String? urlWcm3 = data?.urlWcm3;
+                String? urlAiquam = data?.urlAiquam;
+                String? urlWw3 = data?.urlWw3;
+                String? urlRms = data?.urlRms;
+                String? urlWrf = data?.urlWrf5;
 
-              String? curDir = data?.curDirRms5;
-              String? curVal = data?.curValRms5;
-              String? tSup = data?.T_Sup;
-              String? sSup = data?.S_Sup;
+                String? curDir = data?.curDirRms5;
+                String? curVal = data?.curValRms5;
+                String? tSup = data?.T_Sup;
+                String? sSup = data?.S_Sup;
 
-              List<DataPoint>? dataPoints = data?.dataPoints;
+                List<DataPoint>? dataPoints = data?.dataPoints;
 
-              String? w10 = data?.curDirWrf5;
-              String? t = data?.temperature;
-              String? r = data?.rain;
-              String? w = data?.weathIcon;
-              String? wL = data?.weathLabel;
+                String? w10 = data?.curDirWrf5;
+                String? t = data?.temperature;
+                String? r = data?.rain;
+                String? w = data?.weathIcon;
+                String? wL = data?.weathLabel;
 
-              Widget chartWidget = SizedBox.shrink();
-              if (idxPage == 1 && dataPoints != null && dataPoints.isNotEmpty) {
-                chartWidget = Padding(
-                  padding: const EdgeInsets.all(32.0),
-                  child: SizedBox(
-                    height: 200.0,
-                    child: buildBarChart(dataPoints),
+                Widget chartWidget = SizedBox.shrink();
+                if (idxPage == 1 && dataPoints != null && dataPoints.isNotEmpty) {
+                  chartWidget = Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: SizedBox(
+                      height: 200.0,
+                      child: buildBarChart(dataPoints),
+                    ),
+                  );
+                }
+
+                return SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(left: 10.0, top: 10.0),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'Data: ',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16.0),
+                                  ),
+                                  flex: 1,
+                                ),
+                                Expanded(
+                                  child: Text(humanReadableDate),
+                                  flex: 1,
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'Meteo: ',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16.0),
+                                  ),
+                                  flex: 2,
+                                ),
+                                Expanded(child: Text(wL ?? ''), flex: 1),
+                                Expanded(
+                                  child: Image.asset(w ?? '', height: 30),
+                                  flex: 1,
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'Vento 10m: ',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16.0),
+                                  ),
+                                  flex: 1,
+                                ),
+                                Expanded(child: Text(w10 ?? ''), flex: 1),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'Temperatura aria: ',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16.0),
+                                  ),
+                                  flex: 1,
+                                ),
+                                Expanded(child: Text(t ?? ''), flex: 1),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'Pioggia: ',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16.0),
+                                  ),
+                                  flex: 1,
+                                ),
+                                Expanded(child: Text(r ?? ''), flex: 1),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'Corrente superficiale: ',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16.0),
+                                  ),
+                                  flex: 2,
+                                ),
+                                Expanded(child: Text(curDir ?? ''), flex: 1),
+                                Expanded(
+                                  child: Image.asset(curVal ?? '', height: 30),
+                                  flex: 1,
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'Temperatura superficiale: ',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16.0),
+                                  ),
+                                  flex: 1,
+                                ),
+                                Expanded(child: Text(tSup ?? ''), flex: 1),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'Salinità superficiale: ',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16.0),
+                                  ),
+                                  flex: 1,
+                                ),
+                                Expanded(child: Text(sSup ?? ''), flex: 1),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Divider(height: 20, thickness: 0),
+                      Column(
+                        children: [
+                          if (idxPage == 1) ...[
+                            chartWidget,
+                            Image.network(
+                              urlAiquam ?? '',
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: Colors.redAccent,
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    'Map not available!',
+                                    style: TextStyle(
+                                        fontSize: 30, color: Colors.white),
+                                  ),
+                                );
+                              },
+                              loadingBuilder: (BuildContext context, Widget child,
+                                  ImageChunkEvent? loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  ),
+                                );
+                              },
+                            ),
+                            Image.asset('resources/colorbar/it-IT/bar_aiquam.jpg'),
+                            const Divider(height: 20, thickness: 0),
+                          ] else ...[
+                            Image.network(
+                              urlWrf ?? '',
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: Colors.redAccent,
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    'Map not available!',
+                                    style: TextStyle(
+                                        fontSize: 30, color: Colors.white),
+                                  ),
+                                );
+                              },
+                              loadingBuilder: (BuildContext context, Widget child,
+                                  ImageChunkEvent? loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  ),
+                                );
+                              },
+                            ),
+                            Image.asset('resources/colorbar/it-IT/bar_pioggia.jpg'),
+                            const Divider(height: 20, thickness: 0),
+                          ],
+                          Image.network(
+                            urlWcm3 ?? '',
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.redAccent,
+                                alignment: Alignment.center,
+                                child: const Text(
+                                  'Map not available!',
+                                  style: TextStyle(
+                                      fontSize: 30, color: Colors.white),
+                                ),
+                              );
+                            },
+                            loadingBuilder: (BuildContext context, Widget child,
+                                ImageChunkEvent? loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                      : 0,
+                                ),
+                              );
+                            },
+                          ),
+                          Image.asset('resources/colorbar/it-IT/bar_concentrazion.jpg'),
+                          const Divider(height: 20, thickness: 0),
+                          Image.network(
+                            urlRms ?? '',
+                            fit: BoxFit.fill,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.redAccent,
+                                alignment: Alignment.center,
+                                child: const Text(
+                                  'Map not available!',
+                                  style: TextStyle(
+                                      fontSize: 30, color: Colors.white),
+                                ),
+                              );
+                            },
+                            loadingBuilder: (BuildContext context, Widget child,
+                                ImageChunkEvent? loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              );
+                            },
+                          ),
+                          Image.asset('resources/colorbar/it-IT/bar_corr.jpg'),
+                          const Divider(height: 20, thickness: 0),
+                          Image.network(
+                            urlWw3 ?? '',
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.redAccent,
+                                alignment: Alignment.center,
+                                child: const Text(
+                                  'Map not available!',
+                                  style: TextStyle(
+                                      fontSize: 30, color: Colors.white),
+                                ),
+                              );
+                            },
+                            loadingBuilder: (BuildContext context, Widget child,
+                                ImageChunkEvent? loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              );
+                            },
+                          ),
+                          Image.asset('resources/colorbar/it-IT/bar_ww3.jpg'),
+                        ],
+                      )
+                    ],
                   ),
                 );
               }
-
-              return SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.only(left: 10.0, top: 10.0),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  'Data: ',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16.0),
-                                ),
-                                flex: 1,
-                              ),
-                              Expanded(
-                                child: Text(humanReadableDate),
-                                flex: 1,
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  'Meteo: ',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16.0),
-                                ),
-                                flex: 2,
-                              ),
-                              Expanded(child: Text(wL ?? ''), flex: 1),
-                              Expanded(
-                                child: Image.asset(w ?? '', height: 30),
-                                flex: 1,
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  'Vento 10m: ',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16.0),
-                                ),
-                                flex: 1,
-                              ),
-                              Expanded(child: Text(w10 ?? ''), flex: 1),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  'Temperatura aria: ',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16.0),
-                                ),
-                                flex: 1,
-                              ),
-                              Expanded(child: Text(t ?? ''), flex: 1),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  'Pioggia: ',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16.0),
-                                ),
-                                flex: 1,
-                              ),
-                              Expanded(child: Text(r ?? ''), flex: 1),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  'Corrente superficiale: ',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16.0),
-                                ),
-                                flex: 2,
-                              ),
-                              Expanded(child: Text(curDir ?? ''), flex: 1),
-                              Expanded(
-                                child: Image.asset(curVal ?? '', height: 30),
-                                flex: 1,
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  'Temperatura superficiale: ',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16.0),
-                                ),
-                                flex: 1,
-                              ),
-                              Expanded(child: Text(tSup ?? ''), flex: 1),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  'Salinità superficiale: ',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16.0),
-                                ),
-                                flex: 1,
-                              ),
-                              Expanded(child: Text(sSup ?? ''), flex: 1),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Divider(height: 20, thickness: 0),
-                    Column(
-                      children: [
-                        if (idxPage == 1) ...[
-                          chartWidget,
-                          Image.network(
-                            urlAiquam ?? '',
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: Colors.redAccent,
-                                alignment: Alignment.center,
-                                child: const Text(
-                                  'Map not available!',
-                                  style: TextStyle(
-                                      fontSize: 30, color: Colors.white),
-                                ),
-                              );
-                            },
-                            loadingBuilder: (BuildContext context, Widget child,
-                                ImageChunkEvent? loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Center(
-                                child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                      : null,
-                                ),
-                              );
-                            },
-                          ),
-                          Image.asset('resources/colorbar/it-IT/bar_aiquam.jpg'),
-                          const Divider(height: 20, thickness: 0),
-                        ] else ...[
-                          Image.network(
-                            urlWrf ?? '',
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: Colors.redAccent,
-                                alignment: Alignment.center,
-                                child: const Text(
-                                  'Map not available!',
-                                  style: TextStyle(
-                                      fontSize: 30, color: Colors.white),
-                                ),
-                              );
-                            },
-                            loadingBuilder: (BuildContext context, Widget child,
-                                ImageChunkEvent? loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Center(
-                                child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                      : null,
-                                ),
-                              );
-                            },
-                          ),
-                          Image.asset('resources/colorbar/it-IT/bar_pioggia.jpg'),
-                          const Divider(height: 20, thickness: 0),
-                        ],
-                        Image.network(
-                          urlWcm3 ?? '',
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.redAccent,
-                              alignment: Alignment.center,
-                              child: const Text(
-                                'Map not available!',
-                                style: TextStyle(
-                                    fontSize: 30, color: Colors.white),
-                              ),
-                            );
-                          },
-                          loadingBuilder: (BuildContext context, Widget child,
-                              ImageChunkEvent? loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Center(
-                              child: CircularProgressIndicator(
-                                value: loadingProgress.expectedTotalBytes != null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                                    : 0,
-                              ),
-                            );
-                          },
-                        ),
-                        Image.asset('resources/colorbar/it-IT/bar_concentrazion.jpg'),
-                        const Divider(height: 20, thickness: 0),
-                        Image.network(
-                          urlRms ?? '',
-                          fit: BoxFit.fill,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.redAccent,
-                              alignment: Alignment.center,
-                              child: const Text(
-                                'Map not available!',
-                                style: TextStyle(
-                                    fontSize: 30, color: Colors.white),
-                              ),
-                            );
-                          },
-                          loadingBuilder: (BuildContext context, Widget child,
-                              ImageChunkEvent? loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Center(
-                              child: CircularProgressIndicator(
-                                value: loadingProgress.expectedTotalBytes != null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                                    : null,
-                              ),
-                            );
-                          },
-                        ),
-                        Image.asset('resources/colorbar/it-IT/bar_corr.jpg'),
-                        const Divider(height: 20, thickness: 0),
-                        Image.network(
-                          urlWw3 ?? '',
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.redAccent,
-                              alignment: Alignment.center,
-                              child: const Text(
-                                'Map not available!',
-                                style: TextStyle(
-                                    fontSize: 30, color: Colors.white),
-                              ),
-                            );
-                          },
-                          loadingBuilder: (BuildContext context, Widget child,
-                              ImageChunkEvent? loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Center(
-                              child: CircularProgressIndicator(
-                                value: loadingProgress.expectedTotalBytes != null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                                    : null,
-                              ),
-                            );
-                          },
-                        ),
-                        Image.asset('resources/colorbar/it-IT/bar_ww3.jpg'),
-                      ],
-                    )
-                  ],
-                ),
-              );
-            }
-          },
-        ),
+            },
+          ),
+      ),
+        ]
       ),
     );
   }
