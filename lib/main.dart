@@ -69,7 +69,12 @@ class _MyAppState extends State<MyApp> {
             // text styling for headlines, titles, bodies of text, and more.
             textTheme: const TextTheme(
               headlineSmall: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic),
-            )
+            ),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Color.fromRGBO(6, 66, 115, 1.0), // stessa del primary
+              foregroundColor: Colors.white, // colore del titolo e della freccia
+              iconTheme: IconThemeData(color: Colors.white), // colore delle icone
+            ),
         ),
         home: FutureBuilder(
             future: getMessage(),
