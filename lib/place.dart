@@ -71,7 +71,7 @@ Future<Item> getItem(id, date, idxPage) async {
   if (response.statusCode == 200) {
     var dataRms3 = jsonDecode(response.body);
     if (dataRms3["result"] == "ok") {
-      String curDirRms3 = dataRms3["scm"].toString() + " m/sec";
+      String curDirRms3 = dataRms3["scm"].toString() + " kn";
       String curValRms3 = "resources/arrow/" + dataRms3["scs"].toString() + ".png";
 
       String TSup = dataRms3["sst"].toString() + ' °C';

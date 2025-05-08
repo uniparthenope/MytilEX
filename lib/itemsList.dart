@@ -125,7 +125,7 @@ class _ListLayoutState extends State<ListLayout> {
                           subtitle: Text(subtitle),
                           leading: Column(children: [
                             Image(image: AssetImage(item.curDir), height: 30,),
-                            Text(item.curVal + " m/s", style: TextStyle(fontSize: 12))
+                            Text(item.curVal + " kn", style: TextStyle(fontSize: 12))
                           ]),
                           trailing: Image(image: AssetImage(item.status), height: 25,),
                         ),
