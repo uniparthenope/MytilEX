@@ -51,13 +51,13 @@ class Item {
 }
 
 Future<Item> getItem(id, date, idxPage) async {
-  String urlWcm3 = apiBase + "/products/wcm3/forecast/" + id + "/plot/image?output=con&date=" + date;
-  String urlWw3 = apiBase + "/products/ww33/forecast/" + id + "/plot/image?output=hsd&date=" + date;
-  String urlAiquam = apiBase + "/products/aiq3/forecast/" + id + "/plot/image?output=mci&date=" + date;
-  String urlRms = apiBase + "/products/rms3/forecast/" + id + "/plot/image?date=" + date;
+  String urlWcm3 = apiBase + "/products/wcm3/forecast/" + id + "/plot/image?output=conW&date=" + date;
+  String urlWw3 = apiBase + "/products/ww33/forecast/" + id + "/plot/image?output=hsdW&date=" + date;
+  String urlAiquam = apiBase + "/products/aiq3/forecast/" + id + "/plot/image?output=mciW&date=" + date;
+  String urlRms = apiBase + "/products/rms3/forecast/" + id + "/plot/image?output=genW&date=" + date;
   String urlRms3 = apiBase + "/products/rms3/forecast/" + id + "?date=" + date;
   String urlWrf5 = apiBase + "/products/wrf5/forecast/" + id + "?date=" + date;
-  String urlWrf5Gen = apiBase + "/products/wrf5/forecast/" + id + "/plot/image?output=gen&date=" + date;
+  String urlWrf5Gen = apiBase + "/products/wrf5/forecast/" + id + "/plot/image?output=genW&date=" + date;
 
   var element = Item(
     urlWcm3: urlWcm3,
@@ -128,7 +128,7 @@ class DataPoint {
 }
 
 Future<List<DataPoint>> getTimeSeriesAIQ(id, date) async {
-  String url = apiBase + "/products/aiq3/timeseries/" + id + "?date=" + date;
+  String url = apiBase + "/products/aiq3/timeseries/" + id + "?date=" + date + "&hours=24";
   List<DataPoint> dataPoints = [];
 
   try {
@@ -208,65 +208,90 @@ class PlacePageState extends State<PlacePage> {
 
     dataPoints.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
-    List<BarChartGroupData> barGroups = [];
-    for (int i = 0; i < dataPoints.length; i++) {
+    final barGroups = List.generate(dataPoints.length, (i) {
       final dp = dataPoints[i];
-      barGroups.add(
-        BarChartGroupData(
-          x: i,
-          barRods: [
-            BarChartRodData(
-              toY: (dp.value + 1).toDouble(),
-              color: getBarColor(dp.value + 1),
-              width: 16,
-            ),
-          ],
-        ),
+      return BarChartGroupData(
+        x: i,
+        barRods: [
+          BarChartRodData(
+            toY: (dp.value + 1).toDouble(),
+            color: getBarColor(dp.value + 1),
+            width: 16,
+          ),
+        ],
       );
-    }
+    });
 
     double maxY = barGroups.map((g) => g.barRods.first.toY).reduce((a, b) => a > b ? a : b) + 1;
 
     return BarChart(
       BarChartData(
+        alignment: BarChartAlignment.spaceBetween,
+        groupsSpace: 0,
         minY: 0,
         maxY: maxY,
-        barTouchData: BarTouchData(enabled: false),
         barGroups: barGroups,
+
+        barTouchData: BarTouchData(
+          enabled: true,
+          touchTooltipData: BarTouchTooltipData(
+            tooltipBgColor: Colors.black87,
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              final dp = dataPoints[group.x.toInt()];
+              final time = DateFormat('yyyy-MM-dd HH:mm').format(dp.timestamp.toLocal());
+              return BarTooltipItem(
+                '$time\n',
+                TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                children: [
+                  TextSpan(
+                    text: 'Indice: ${dp.value}',
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
+            axisNameWidget: Text(
+              "Indice Contaminazione",
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+            ),
             sideTitles: SideTitles(
               showTitles: true,
-              getTitlesWidget: (double value, TitleMeta meta) {
-                if (value % 1 != 0) return Container();
-                return Text(value.toInt().toString(), style: TextStyle(fontSize: 10));
+              getTitlesWidget: (v, meta) {
+                if (v % 1 != 0) return SizedBox.shrink();
+                return Text(v.toInt().toString(), style: TextStyle(fontSize: 10));
               },
             ),
           ),
-          topTitles: AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          rightTitles: AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
           bottomTitles: AxisTitles(
+            axisNameWidget: Text(
+              "Ora",
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+            ),
             sideTitles: SideTitles(
               showTitles: true,
-              getTitlesWidget: (double value, TitleMeta meta) {
-                int index = value.toInt();
-                if (index % 4 != 0 || index < 0 || index >= dataPoints.length) return Container();
-                DateTime date = dataPoints[index].timestamp;
-                return Transform.rotate(
-                  angle: -0.5,
-                  child: Text(
-                    DateFormat('dd/MM').format(date),
-                    style: TextStyle(fontSize: 8),
-                  ),
+              reservedSize: 30,
+              getTitlesWidget: (value, meta) {
+                final idx = value.toInt();
+                if (idx < 0 || idx >= dataPoints.length) return SizedBox.shrink();
+                if (idx % 3 != 0) return SizedBox.shrink();
+                final date = dataPoints[idx].timestamp.toLocal();
+                return SideTitleWidget(
+                  axisSide: meta.axisSide,
+                  child: Text(DateFormat('HH:mm').format(date),
+                      style: TextStyle(fontSize: 8)),
                 );
               },
             ),
           ),
+          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
+
         borderData: FlBorderData(show: false),
       ),
     );
