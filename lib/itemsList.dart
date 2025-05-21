@@ -17,54 +17,57 @@ class Rows {
   Rows({this.id, this.name, this.curDir, this.curVal, this.status});
 }
 
+Future<List<Rows>> getItems(String date, List<String> locations, int index) async {
+  List<Future<Rows?>> futures = locations.map((loc) async {
+    try {
+      final resp1 = await http.get(Uri.parse('$apiBase/products/rms3/forecast/$loc?date=$date&opt=place'));
+      if (resp1.statusCode != 200) return null;
+      final data = jsonDecode(resp1.body);
+      if (data['result'] != 'ok') return null;
 
-Future<List> getItems(String date, locations, int index) async {
-  List<Rows> list = <Rows>[];
+      final id     = data['place']['id'].toString();
+      final scsVal = data['scs']?.toString() ?? 'null';
+      final scs    = (scsVal=='0' || scsVal=='null')
+          ? 'resources/arrow/null.png'
+          : 'resources/arrow/$scsVal.png';
+      final scm    = data['scm'].toString();
+      final name   = data['place']['long_name']['it'].toString();
 
-  for (int i=0; i < locations.length; i++){
-    final response = await http.get(Uri.parse(apiBase + "/products/rms3/forecast/" + locations[i] + "?date=" + date + "&opt=place"));
-    if (response.statusCode == 200) {
-      var data = jsonDecode(response.body);
+      var urlStatus = (index == 1)
+          ? '$apiBase/products/aiq3/forecast/$id?date=$date'
+          : '$apiBase/products/wcm3/forecast/$id?date=$date';
 
-      if (data["result"] == "ok"){
-        var id = data["place"]["id"].toString();
-        var scsValue = data["scs"]?.toString() ?? 'null';
-        var scs = (scsValue == '0' || scsValue == 'null')
-            ? 'resources/arrow/null.png'
-            : 'resources/arrow/$scsValue.png';
-        var scm = data["scm"].toString();
-        var name = data["place"]["long_name"]["it"].toString();
-        var status = 'resources/status/none.png'.toString();
-
-        var urlStatus = apiBase + "/products/wcm3/forecast/" + id + "?date=" + date;
-        if (index == 1) {
-          urlStatus = apiBase + "/products/aiq3/forecast/" + id + "?date=" + date;
-        }
-        final response2 = await http.get(Uri.parse(urlStatus));
-        if (response2.statusCode == 200) {
-          var data2 = jsonDecode(response2.body);
-
-          if (data2["result"] == "ok"){
-            if (index == 1) {
-              var mciValue = data2["mci"] != null ? (data2["mci"] + 1).toString() : "0";
-              status = 'resources/status/' + mciValue + '.png';
-            }
-            else {
-              var stsValue = data2["sts"] != null ? data2["sts"].toString() : "null";
-              status = 'resources/status/' + stsValue + '.png';
-            }
+      final resp2 = await http.get(Uri.parse(urlStatus));
+      String status = 'resources/status/none.png';
+      if (resp2.statusCode == 200) {
+        final d2 = jsonDecode(resp2.body);
+        if (d2['result']=='ok') {
+          if (index==1) {
+            final mci = d2['mci']!=null ? (d2['mci']+1).toString() : '0';
+            status = 'resources/status/$mci.png';
+          } else {
+            final sts = d2['sts']?.toString() ?? 'null';
+            status = 'resources/status/$sts.png';
           }
         }
-
-        var item = Rows(id: id, name: name, curDir: scs, curVal: scm, status: status);
-        list.add(item);
       }
-    }
-  }
 
-  list.sort((a, b) {
-    return a.name.toString().toLowerCase().compareTo(b.name.toString().toLowerCase());
-  });
+      return Rows(
+        id:     id,
+        name:   name,
+        curDir: scs,
+        curVal: scm,
+        status: status,
+      );
+    } catch (e) {
+      return null;
+    }
+  }).toList();
+
+  final results = await Future.wait(futures);
+
+  final list = results.where((r)=> r!=null).cast<Rows>().toList()
+    ..sort((a,b)=> a.name!.toLowerCase().compareTo(b.name!.toLowerCase()));
 
   return list;
 }
