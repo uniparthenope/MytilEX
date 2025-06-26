@@ -1,6 +1,7 @@
 //TODO Aggiornare barre di scala
 
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -244,7 +245,7 @@ class PlacePageState extends State<PlacePage> {
                 TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 children: [
                   TextSpan(
-                    text: 'Indice: ${dp.value}',
+                    text: 'Indice: ${dp.value + 1}',
                     style: TextStyle(color: Colors.white, fontSize: 12),
                   ),
                 ],
@@ -274,17 +275,40 @@ class PlacePageState extends State<PlacePage> {
             ),
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 30,
+              reservedSize: 60,
               getTitlesWidget: (value, meta) {
                 final idx = value.toInt();
                 if (idx < 0 || idx >= dataPoints.length) return SizedBox.shrink();
-                if (idx % 3 != 0) return SizedBox.shrink();
-                final date = dataPoints[idx].timestamp.toLocal();
-                return SideTitleWidget(
-                  axisSide: meta.axisSide,
-                  child: Text(DateFormat('HH:mm').format(date),
-                      style: TextStyle(fontSize: 8)),
-                );
+
+                final screenWidth = MediaQuery.of(context).size.width;
+                final totalPoints = dataPoints.length;
+
+                final maxTicks = (screenWidth / 100).floor();
+                final skipStep = (totalPoints / maxTicks).ceil();
+
+                if (idx % skipStep != 0) {
+                  return SizedBox.shrink();
+                }
+
+                final date = dataPoints[idx].timestamp;
+                final label = DateFormat('dd/MM HH:mm').format(date);
+
+                if (screenWidth < 600) {
+                  return SideTitleWidget(
+                    space: 4,
+                    axisSide: meta.axisSide,
+                    child: Transform.rotate(
+                      angle: -math.pi / 6,
+                      child: Text(label, style: TextStyle(fontSize: 10)),
+                    ),
+                  );
+                } else {
+                  return SideTitleWidget(
+                    space: 4,
+                    axisSide: meta.axisSide,
+                    child: Text(label, style: TextStyle(fontSize: 10)),
+                  );
+                }
               },
             ),
           ),
