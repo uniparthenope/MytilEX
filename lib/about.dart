@@ -27,85 +27,70 @@ class AboutPage extends StatelessWidget {
   final List<Team> items = getTeam();
 
   AboutPage({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text("Informazioni", style: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic, fontFamily: 'Georgia'),),
-          backgroundColor: const Color.fromRGBO(6, 66, 115, 1.0),
+      appBar: AppBar(
+        title: const Text(
+          "Informazioni",
+          style: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic, fontFamily: 'Georgia'),
         ),
-        body:
-        Container(
+        backgroundColor: const Color.fromRGBO(6, 66, 115, 1.0),
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 30.0),
           child: Column(
-            children: <Widget> [
-              Container(
-                  padding: const EdgeInsets.only(left: 20,top: 50),
-                  child:  Column(
-                    children: const [
-                      Text('MytilEX',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontFamily: 'Aleo',
-                              fontStyle: FontStyle.normal,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 25.0,
-                              color: Colors.black
-                          )
-                      ),
-                      Text("https://meteo.uniparthenope.it", style: TextStyle(
-                          fontSize: 16.0
-                      ),
-                      ),
-                      Text(""),
-                      Text("Dipartimento di Scienze e Tecnologie", style: TextStyle(
-                          fontSize: 16.0
-                      ),
-                      ),
-                      Text("Università degli Studi di Napoli 'Parthenope'", style: TextStyle(
-                          fontSize: 16.0
-                      ),
-                      )
-                    ],
-                  )
-
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                'MytilEX',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Aleo',
+                  fontStyle: FontStyle.normal,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 25.0,
+                  color: Colors.black,
+                ),
               ),
-              const Image(image: AssetImage('resources/logo_mytilex.png'), height: 300, fit:BoxFit.fill),
-              const Text('Team: ',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontFamily: 'Aleo',
-                      fontStyle: FontStyle.normal,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 25.0,
-                      color: Colors.black
-                  )
+              const Text("https://meteo.uniparthenope.it", style: TextStyle(fontSize: 16.0)),
+              const SizedBox(height: 10),
+              const Text("Dipartimento di Scienze e Tecnologie", style: TextStyle(fontSize: 16.0)),
+              const Text("Università degli Studi di Napoli 'Parthenope'", style: TextStyle(fontSize: 16.0)),
+              const SizedBox(height: 20),
+              const Image(image: AssetImage('resources/logo_mytilex.png'), height: 300, fit: BoxFit.fill),
+              const SizedBox(height: 20),
+              const Text(
+                'Team:',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Aleo',
+                  fontStyle: FontStyle.normal,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 25.0,
+                  color: Colors.black,
+                ),
               ),
-
-              Expanded(
-                  child: ListView.builder(
-                    itemCount: items.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      var item = items[index];
-
-                      return ListTile(
-                        onTap: (){
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text('Contact at: ' + item.mail),
-                          ));
-                        },
-
-                        title: Text(item.name),
-                        subtitle: Text(item.role ),
-                        leading: Image(image: AssetImage(item.picture),height: 50,),
-                      );
-                    },
-
-                  )
-              )
+              const SizedBox(height: 10),
+              ...items.map((item) {
+                return ListTile(
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('Contact at: ${item.mail}'),
+                    ));
+                  },
+                  title: Text(item.name),
+                  subtitle: Text(item.role),
+                  leading: Image(image: AssetImage(item.picture), height: 50),
+                );
+              }).toList(),
+              const SizedBox(height: 20),
             ],
           ),
         ),
-
+      ),
     );
   }
 }
